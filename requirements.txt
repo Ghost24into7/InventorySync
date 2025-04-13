@@ -10,4 +10,4 @@ seaborn
 plotly
 google-generativeai
 gunicorn
-
+celery
