@@ -124,35 +124,23 @@ Below is the **Screenshots** section of the **README.md** for your **InventorySy
 
 ## 🖼️ Screenshots
 
-Explore InventorySync’s intuitive navigation pages through these screenshots, showcasing each section’s functionality. Each page includes two side-by-side images for a comprehensive view, along with a description of its purpose.
+Explore InventorySync’s intuitive navigation pages through these screenshots, showcasing each section’s functionality.
 
-### 📋 Dashboard
-The Dashboard serves as the central hub, providing quick access to all features—upload, preview, file management, visualizations, and the chatbot.
+![image](https://github.com/user-attachments/assets/abababdb-ead1-483b-bf27-bb2830897cb6)
 
-| **Dashboard Overview** | **Feature Navigation** |
-|------------------------|------------------------|
-| ![Dashboard Overview](![image](https://github.com/user-attachments/assets/87f1b7bb-f8ea-45f6-87d9-5a5a99030b43)) | ![Feature Navigation](![image](https://github.com/user-attachments/assets/c531cfb7-343f-459f-a564-adcdbb2ec605)) |
+![image](https://github.com/user-attachments/assets/4a7c84a2-df25-435a-bc70-0ce7b73f95e1)
 
-### 📊 Data Preview
-The Data Preview page displays your datasets in a clean, tabulated format, with options to filter and sort.
+![image](https://github.com/user-attachments/assets/ee499184-7e3f-4c30-99b3-d6c50f636767)
 
-| **Table View** | **Filtered Data** |
-|----------------|-------------------|
-| ![Table View](![image](![image](https://github.com/user-attachments/assets/2538ec8b-6d7a-429c-b25e-9f4cb0aa2de3))) | ![Filtered Data]() |
+![image](https://github.com/user-attachments/assets/b33c6dac-1a58-4a99-a62f-b7f101b1db61)
 
-### 📈 Visualizations
-The Visualizations page generates interactive charts, such as bar graphs and pie charts, to uncover trends in your data.
+![image](https://github.com/user-attachments/assets/ebd4877b-5d78-4c6a-a475-27f98f0ebc13)
 
-| **Bar Chart View** | **Pie Chart View** |
-|--------------------|--------------------|
-| ![Bar Chart View](images/screenshots/visualization_bar.png) | ![Pie Chart View](images/screenshots/visualization_pie.png) |
+![image](https://github.com/user-attachments/assets/91eec5d2-80a1-4122-a130-afe41c28e065)
 
-### 🤖 Chatbot
-The Chatbot page offers a conversational interface to query sales and inventory data, powered by the Gemini API.
+![image](https://github.com/user-attachments/assets/7cf90f56-34d0-4ec1-9ec4-3179cf00847b)
 
-| **Chat Interface** | **Query Response** |
-|--------------------|--------------------|
-| ![Chat Interface](images/screenshots/chatbot_interface.png) | ![Query Response](images/screenshots/chatbot_response.png) |
+![image](https://github.com/user-attachments/assets/42461396-06f9-497a-8ee2-634ecfa204ad)
 
 ---
 
@@ -163,7 +151,7 @@ InventorySync is licensed under the [MIT License](LICENSE).
 ---
 ## 🌍 Join the Future of Business Management
 
-InventorySync isn’t just a tool—it’s your co-pilot for navigating the cosmos of sales and inventory data. Star the repo, try it out, and let’s shape the future together! ⭐
+InventorySync isn’t just a tool—it’s your co-pilot for navigating the cosmos of sales and inventory data. Star the repo ⭐ :)
 
 ---
 
