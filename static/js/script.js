@@ -127,12 +127,24 @@ document.getElementById('upload-form')?.addEventListener('submit', async functio
 
         // Show Results
         document.getElementById('result-date').textContent = data.results.date;
-        document.getElementById('result-records').textContent = data.results.total_records.toLocaleString();
-        document.getElementById('result-new').textContent = data.results.new_records.toLocaleString();
-        document.getElementById('result-updated').textContent = data.results.updated_records.toLocaleString();
-        document.getElementById('result-daily-sales').textContent = data.results.daily_total_sales.toLocaleString();
-        document.getElementById('result-daily-purchases').textContent = data.results.daily_total_purchases.toLocaleString();
+        
+        document.getElementById('result-records').textContent =
+          data.results.total_records != null ? data.results.total_records.toLocaleString() : '...';
+        
+        document.getElementById('result-new').textContent =
+          data.results.new_records != null ? data.results.new_records.toLocaleString() : 'Updating...';
+        
+        document.getElementById('result-updated').textContent =
+          data.results.updated_records != null ? data.results.updated_records.toLocaleString() : 'Updating...';
+        
+        document.getElementById('result-daily-sales').textContent =
+          data.results.daily_total_sales != null ? data.results.daily_total_sales.toLocaleString() : '...';
+        
+        document.getElementById('result-daily-purchases').textContent =
+          data.results.daily_total_purchases != null ? data.results.daily_total_purchases.toLocaleString() : '...';
+        
         resultSummary.classList.remove('d-none');
+
 
         const downloadBtn = document.getElementById('download-btn');
         downloadBtn.disabled = false;
