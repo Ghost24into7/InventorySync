@@ -186,7 +186,9 @@ def save_preprocessed_file(df, selected_date, log_output):
         file_name = f"salesninventory_{date_str}.xlsx"
         file_path = os.path.join(PROCESSED_DIR, file_name)
         
-        df.to_excel(file_path, index=False)
+        with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False)
+
         log_output.info(f"Preprocessed file saved: {file_name}")
         
         df_no_total = df[df['Brand'] != 'grand total'].copy()
