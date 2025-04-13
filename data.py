@@ -252,7 +252,9 @@ def update_master_summary(new_df, log_output):
         })
         master_df = pd.concat([grand_total_row, final_df], ignore_index=True)
         
-        master_df.to_excel(master_file, index=False)
+        with pd.ExcelWriter(master_file, engine='xlsxwriter') as writer:
+            master_df.to_excel(writer, index=False)
+
         log_output.info(f"Master summary updated. Rows: {len(master_df)}, Sales: {total_sales}, Purchases: {total_purchases}")
         return True
     
