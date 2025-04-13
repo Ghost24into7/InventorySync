@@ -33,6 +33,7 @@ import numpy as np
 import zipfile
 from flask import send_file
 from io import BytesIO
+import threading
 
 # Import chatbot functionality
 from chatbot import SalesDataChatbot  # Import the chat route handler
@@ -929,51 +930,91 @@ def download_file(file_name):
         return send_file(file_path, as_attachment=True, download_name=file_name)
     return jsonify({"error": "File not found"}), 404
 
-@app.route('/preview', methods=['GET'])
-def get_preview():
+@app.route('/process', methods=['POST'])
+def process_data():
     log_output = FlaskLogger()
-    preview_df = get_database_preview(log_output)
-    
-    if preview_df.empty:
-        return jsonify({
-            "warning": "No data available in the database",
-            "data": [],
-            "metrics": {
-                "total_records": 0,
-                "unique_brands": 0,
-                "unique_categories": 0,
-                "neon_total_sales": 0,
-                "neon_total_purchases": 0
-            },
-            "logs": log_output.get_logs()
-        })
-    
-    # Fetch the grand total row for metrics
-    grand_total_row = preview_df[preview_df['brand'] == 'grand total']
-    if grand_total_row.empty:
-        neon_total_sales = 0
-        neon_total_purchases = 0
+    if 'file' not in request.files or 'date' not in request.form:
+        log_output.error("No file or date provided")
+        return jsonify({"error": "No file or date provided", "logs": log_output.get_logs()}), 400
+
+    file = request.files['file']
+    selected_date = pd.to_datetime(request.form['date'])
+
+    if file.filename == '':
+        log_output.error("No file selected")
+        return jsonify({"error": "No file selected", "logs": log_output.get_logs()}), 400
+
+    log_output.info("Starting file processing...")
+    temp_file_path = os.path.join(TEMP_STORAGE_DIR, file.filename)
+    file.save(temp_file_path)
+    log_output.info(f"File saved temporarily: {file.filename}")
+
+    df = preprocess_data(temp_file_path, selected_date, log_output)
+    if df is None:
+        os.remove(temp_file_path)
+        return jsonify({"error": "Failed to preprocess data", "logs": log_output.get_logs()}), 500
+
+    preprocessed_path = save_preprocessed_file(df, selected_date, log_output)
+    if not preprocessed_path:
+        os.remove(temp_file_path)
+        return jsonify({"error": "Failed to save preprocessed file", "logs": log_output.get_logs()}), 500
+
+    enforce_retention_policy(log_output)
+    os.remove(temp_file_path)
+
+    # Background thread for DB upload + master summary
+    def run_background_tasks():
+        try:
+            results = upload_to_database(df, selected_date, log_output)
+            if results:
+                log_output.info("Database upload completed in background.")
+
+                master_file = os.path.join(PROCESSED_DIR, MASTER_SUMMARY_FILE)
+                if os.path.exists(master_file):
+                    master_df = pd.read_excel(master_file)
+                    grand_total_row = master_df[master_df['Brand'] == 'grand total'].iloc[0]
+                    local_total_sales = int(grand_total_row['SalesQty'])
+                    local_total_purchases = int(grand_total_row['PurchaseQty'])
+                else:
+                    local_total_sales, local_total_purchases = 0, 0
+                log_output.info(f"Master summary: Sales={local_total_sales}, Purchases={local_total_purchases}")
+            else:
+                log_output.error("Failed to upload data to database")
+        except Exception as e:
+            log_output.error(f"Background task error: {str(e)}")
+
+    threading.Thread(target=run_background_tasks).start()
+
+    # Fetch daily totals
+    date_str = selected_date.strftime('%y%m%d')
+    file_name = f"salesninventory_{date_str}.xlsx"
+    file_path = os.path.join(PROCESSED_DIR, file_name)
+    if os.path.exists(file_path):
+        daily_df = pd.read_excel(file_path)
+        daily_grand_row = daily_df[daily_df['Brand'] == 'grand total'].iloc[0]
+        daily_total_sales = int(daily_grand_row['SalesQty'])
+        daily_total_purchases = int(daily_grand_row['PurchaseQty'])
     else:
-               neon_total_sales = int(grand_total_row.iloc[0]['sales_qty'])
-               neon_total_purchases = int(grand_total_row.iloc[0]['purchase_qty'])
-    
-    # Prepare the preview data (excluding grand total for the table)
-    preview_data = preview_df.to_dict(orient='records')
-    
-    # Calculate metrics
-    df_no_grand = preview_df[preview_df['brand'] != 'grand total']
+        daily_total_sales, daily_total_purchases = 0, 0
+
     response = {
-        "data": preview_data,
-        "metrics": {
-            "total_records": len(df_no_grand),
-            "unique_brands": df_no_grand['brand'].nunique(),
-            "unique_categories": df_no_grand['category'].nunique(),
-            "neon_total_sales": neon_total_sales,
-            "neon_total_purchases": neon_total_purchases
+        "status": "success",
+        "results": {
+            "new_records": None,  # not known yet
+            "updated_records": None,  # not known yet
+            "total_records": len(df),
+            "date": selected_date.strftime("%Y-%m-%d"),
+            "daily_total_sales": daily_total_sales,
+            "daily_total_purchases": daily_total_purchases,
+            "master_total_sales": "updating...",
+            "master_total_purchases": "updating...",
+            "file_name": file_name
         },
         "logs": log_output.get_logs()
     }
+    log_output.info("Data pipeline started successfully. Background processing in progress.")
     return jsonify(response)
+
 
 @app.route('/grand-total', methods=['GET'])
 def get_grand_total():
