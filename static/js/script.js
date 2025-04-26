@@ -131,7 +131,6 @@ document.getElementById('upload-form')?.addEventListener('submit', async functio
         statusSteps.report.classList.remove('active');
         statusSteps.report.classList.add('completed');
 
-<<<<<<< HEAD
 // Show Results
 document.getElementById('result-date').textContent = data.results.date;
 
@@ -152,7 +151,6 @@ document.getElementById('result-daily-purchases').textContent =
 
 resultSummary.classList.remove('d-none');
 
-=======
         // Show Results
         document.getElementById('result-date').textContent = data.results.date;
         
@@ -172,7 +170,6 @@ resultSummary.classList.remove('d-none');
           data.results.daily_total_purchases != null ? data.results.daily_total_purchases.toLocaleString() : '...';
         
         resultSummary.classList.remove('d-none');
->>>>>>> f2c8c1cd8d57e65dac23d3922a87e2bb97e53923
 
 
         const downloadBtn = document.getElementById('download-btn');
@@ -715,8 +712,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
 });
-<<<<<<< HEAD
 
-/*voice*/
-=======
->>>>>>> f2c8c1cd8d57e65dac23d3922a87e2bb97e53923
