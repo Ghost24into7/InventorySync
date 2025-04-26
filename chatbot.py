@@ -20,7 +20,7 @@ load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     print("Warning: GEMINI_API_KEY not found in environment variables. Please set it.")
-    API_KEY = "AIzaSyDc_UKsk6OFy4PRi7wFNZwT1ZFvKV5UAPM"  # Placeholder, will fail if not replaced
+    API_KEY = ""  # Placeholder, will fail if not replaced
 
 genai.configure(api_key=API_KEY)
 
@@ -752,7 +752,11 @@ class SalesDataChatbot:
             - Use bullet points for lists
             - Use tables for product listings, metrics, and sales comparisons
             - Use bold for key numbers, brands, or warnings
-            - Use emojis **sparingly** for visual cue (e.g., 🔥 for high sales, ⚠️ for low inventory)
+            - Use Horizontal Rules
+            - Use Blockquotes
+            - Use Bullet Graph / Rating Stars
+            - Use emojis **sparingly** for visual cue (e.g., 🔥 for high sales, ⚠️ for low inventory and others depending on the word)
+                - Use different innovative ad creative structures with appropriate colors to make visually appeling answers.
 
             ### 💡 VALUE-DRIVEN COMMUNICATION
             - Speak in business terms, not technical terms

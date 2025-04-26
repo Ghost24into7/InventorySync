@@ -10,4 +10,6 @@ seaborn
 plotly
 google-generativeai
 gunicorn
-
+celery
+xlsxwriter
+dateparser

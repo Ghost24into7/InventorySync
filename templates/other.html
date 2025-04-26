@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/chatbot.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice_control.css') }}">
 </head>
 
 <body>
@@ -40,6 +41,19 @@
             </div>
         </div>
     </nav>
+    <!-- Voice Assistant Button (already in other.html) -->
+<button id="voice-assistant-btn" class="voice-assistant-btn">
+    <svg id="voice-assistant-avatar" class="avatar-idle" width="40" height="40" viewBox="0 0 100 100">
+        <g transform="translate(50, 50)">
+            <circle cx="0" cy="-20" r="20" fill="#4CAF50"/>
+            <path d="M-25 -10 A25 25 0 0 1 25 -10" fill="none" stroke="#fff" stroke-width="5"/>
+            <circle cx="-25" cy="-10" r="5" fill="#fff"/>
+            <rect x="-15" y="0" width="30" height="30" rx="5" fill="#4CAF50"/>
+            <path id="left-arm" d="M-15 5 L-25 15" stroke="#fff" stroke-width="5"/>
+            <path id="right-arm" d="M15 5 L25 15" stroke="#fff" stroke-width="5"/>
+        </g>
+    </svg>
+</button>
 
     <!-- Loader -->
         <div id="loader" class="futuristic-loader">
@@ -240,7 +254,7 @@
                             <button class="btn btn-sm btn-outline-light me-2" onclick="downloadAllFiles()" data-bs-toggle="tooltip" title="Download all daily files as ZIP">
                                 <i class="fas fa-download"></i> All
                             </button>
-                            <button class="btn btn-sm btn-outline-light" onclick="loadProcessedFiles('')" data-bs-toggle="tooltip" title="Refresh file list">
+                            <button class="btn btn-sm btn-outline-light" onclick="loadProcessedFiles('')" data-bs-toggle="tooltip">
                                 <i class="fas fa-sync-alt"></i> Refresh
                             </button>
                         </div>
@@ -368,7 +382,7 @@
             </section>
         </div>
     </div>
-
+        
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -378,6 +392,8 @@
     <script src="/static/js/script.js"></script>
     <!-- Add new chatbot JS -->
     <script src="/static/js/chatbot.js"></script>
+    <script src="{{ url_for('static', filename='js/voice_control.js') }}"></script>
+
 </body>
 
 </html>

@@ -1,0 +1,66 @@
+.voice-assistant-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    z-index: 10000; /* Ensure button stays above navbar and loader */
+}
+
+.voice-assistant-btn:hover {
+    transform: scale(1.1);
+}
+
+.avatar-idle {
+    animation: float 3s ease-in-out infinite;
+}
+
+.avatar-listening {
+    animation: glow 1s infinite alternate;
+}
+
+.avatar-processing {
+    animation: spin 1s infinite linear;
+}
+
+.avatar-speaking {
+    animation: speak 0.5s infinite alternate;
+}
+
+#left-arm, #right-arm {
+    transform-origin: center;
+    animation: wave 2s infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes glow {
+    0% { filter: drop-shadow(0 0 5px #4CAF50); }
+    100% { filter: drop-shadow(0 0 15px #4CAF50); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes speak {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-3px); }
+}
+
+@keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(10deg); }
+}

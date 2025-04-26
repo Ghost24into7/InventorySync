@@ -1,6 +1,6 @@
 # data.py
 # Import required libraries
-from flask import Flask, request, jsonify, send_file, render_template
+from flask import Flask, request, jsonify, send_file, render_template, Blueprint
 import pandas as pd
 import numpy as np
 import os
@@ -33,9 +33,12 @@ import numpy as np
 import zipfile
 from flask import send_file
 from io import BytesIO
+import threading
+
 
 # Import chatbot functionality
 from chatbot import SalesDataChatbot  # Import the chat route handler
+from voice_control import VoiceAssistant
 
 # Load environment variables from .env file
 load_dotenv()
@@ -49,7 +52,10 @@ logger = logging.getLogger(__name__)
 
 # Flask application setup
 app = Flask(__name__)
+data_bp = Blueprint('data', __name__)
 chatbot = SalesDataChatbot()
+voice_assistant = VoiceAssistant()
+
 
 # Define constants
 TEMP_STORAGE_DIR = "temp_storage"
@@ -186,7 +192,8 @@ def save_preprocessed_file(df, selected_date, log_output):
         file_name = f"salesninventory_{date_str}.xlsx"
         file_path = os.path.join(PROCESSED_DIR, file_name)
         
-        df.to_excel(file_path, index=False)
+        with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False)
         log_output.info(f"Preprocessed file saved: {file_name}")
         
         df_no_total = df[df['Brand'] != 'grand total'].copy()
@@ -250,7 +257,9 @@ def update_master_summary(new_df, log_output):
         })
         master_df = pd.concat([grand_total_row, final_df], ignore_index=True)
         
-        master_df.to_excel(master_file, index=False)
+        with pd.ExcelWriter(master_file, engine='xlsxwriter') as writer:
+            master_df.to_excel(writer, index=False)
+
         log_output.info(f"Master summary updated. Rows: {len(master_df)}, Sales: {total_sales}, Purchases: {total_purchases}")
         return True
     
@@ -850,45 +859,56 @@ def process_data():
     if 'file' not in request.files or 'date' not in request.form:
         log_output.error("No file or date provided")
         return jsonify({"error": "No file or date provided", "logs": log_output.get_logs()}), 400
-    
+
     file = request.files['file']
     selected_date = pd.to_datetime(request.form['date'])
-    
+
     if file.filename == '':
         log_output.error("No file selected")
         return jsonify({"error": "No file selected", "logs": log_output.get_logs()}), 400
-    
+
     log_output.info("Starting file processing...")
     temp_file_path = os.path.join(TEMP_STORAGE_DIR, file.filename)
     file.save(temp_file_path)
     log_output.info(f"File saved temporarily: {file.filename}")
-    
+
     df = preprocess_data(temp_file_path, selected_date, log_output)
     if df is None:
         os.remove(temp_file_path)
         return jsonify({"error": "Failed to preprocess data", "logs": log_output.get_logs()}), 500
-    
+
     preprocessed_path = save_preprocessed_file(df, selected_date, log_output)
     if not preprocessed_path:
         os.remove(temp_file_path)
         return jsonify({"error": "Failed to save preprocessed file", "logs": log_output.get_logs()}), 500
-    
+
     enforce_retention_policy(log_output)
-    results = upload_to_database(df, selected_date, log_output)
     os.remove(temp_file_path)
-    
-    if not results:
-        return jsonify({"error": "Failed to upload data to database", "logs": log_output.get_logs()}), 500
-    
-    master_file = os.path.join(PROCESSED_DIR, MASTER_SUMMARY_FILE)
-    if os.path.exists(master_file):
-        master_df = pd.read_excel(master_file)
-        grand_total_row = master_df[master_df['Brand'] == 'grand total'].iloc[0]
-        local_total_sales = int(grand_total_row['SalesQty'])
-        local_total_purchases = int(grand_total_row['PurchaseQty'])
-    else:
-        local_total_sales, local_total_purchases = 0, 0
-    
+
+    # Background thread for DB upload + master summary
+    def run_background_tasks():
+        try:
+            results = upload_to_database(df, selected_date, log_output)
+            if results:
+                log_output.info("Database upload completed in background.")
+
+                master_file = os.path.join(PROCESSED_DIR, MASTER_SUMMARY_FILE)
+                if os.path.exists(master_file):
+                    master_df = pd.read_excel(master_file)
+                    grand_total_row = master_df[master_df['Brand'] == 'grand total'].iloc[0]
+                    local_total_sales = int(grand_total_row['SalesQty'])
+                    local_total_purchases = int(grand_total_row['PurchaseQty'])
+                else:
+                    local_total_sales, local_total_purchases = 0, 0
+                log_output.info(f"Master summary: Sales={local_total_sales}, Purchases={local_total_purchases}")
+            else:
+                log_output.error("Failed to upload data to database")
+        except Exception as e:
+            log_output.error(f"Background task error: {str(e)}")
+
+    threading.Thread(target=run_background_tasks).start()
+
+    # Fetch daily totals
     date_str = selected_date.strftime('%y%m%d')
     file_name = f"salesninventory_{date_str}.xlsx"
     file_path = os.path.join(PROCESSED_DIR, file_name)
@@ -899,24 +919,25 @@ def process_data():
         daily_total_purchases = int(daily_grand_row['PurchaseQty'])
     else:
         daily_total_sales, daily_total_purchases = 0, 0
-    
+
     response = {
         "status": "success",
         "results": {
-            "new_records": results["new"],
-            "updated_records": results["updated"],
+            "new_records": None,  # not known yet
+            "updated_records": None,  # not known yet
             "total_records": len(df),
             "date": selected_date.strftime("%Y-%m-%d"),
             "daily_total_sales": daily_total_sales,
             "daily_total_purchases": daily_total_purchases,
-            "master_total_sales": local_total_sales,
-            "master_total_purchases": local_total_purchases,
+            "master_total_sales": "updating...",
+            "master_total_purchases": "updating...",
             "file_name": file_name
         },
         "logs": log_output.get_logs()
     }
-    log_output.info("Data pipeline process completed successfully!")
+    log_output.info("Data pipeline started successfully. Background processing in progress.")
     return jsonify(response)
+
 
 @app.route('/download/<file_name>', methods=['GET'])
 def download_file(file_name):
@@ -1074,6 +1095,11 @@ def download_zip():
     except Exception as e:
         logger.error(f"Error creating ZIP: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+# Register voice control route
+data_bp.route('/voice_command', methods=['POST'])(voice_assistant.process_command)
+
+app.register_blueprint(data_bp)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
