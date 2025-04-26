@@ -12,7 +12,5 @@ google-generativeai
 gunicorn
 celery
 xlsxwriter
-<<<<<<< HEAD
 dateparser
-=======
->>>>>>> f2c8c1cd8d57e65dac23d3922a87e2bb97e53923
+
